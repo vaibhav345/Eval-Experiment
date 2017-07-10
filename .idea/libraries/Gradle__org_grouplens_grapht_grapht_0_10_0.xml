@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.grouplens.grapht:grapht:0.10.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.grouplens.grapht/grapht/0.10.0/2a27608f7652b1746ffb470e2d078ba3aca5842d/grapht-0.10.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.grouplens.grapht/grapht/0.10.0/6031bb5bedbdabc0aac692e7b54b832d604c1e59/grapht-0.10.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

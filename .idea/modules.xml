@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Eval-Experiment.iml" filepath="$PROJECT_DIR$/Eval-Experiment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Vaibhav345.iml" filepath="$PROJECT_DIR$/.idea/modules/Vaibhav345.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Vaibhav345_main.iml" filepath="$PROJECT_DIR$/.idea/modules/Vaibhav345_main.iml" group="Vaibhav345" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Vaibhav345_test.iml" filepath="$PROJECT_DIR$/.idea/modules/Vaibhav345_test.iml" group="Vaibhav345" />
+      <module fileurl="file://E:\Documents &amp; Practice\Thesis\Experiment &amp; Related Files\Eval-Experiment\src\src.iml" filepath="E:\Documents &amp; Practice\Thesis\Experiment &amp; Related Files\Eval-Experiment\src\src.iml" />
+    </modules>
+  </component>
+</project>

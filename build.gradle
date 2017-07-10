@@ -1,0 +1,347 @@
+/* This file may be freely modified, used, and redistributed without restriction. */
+/* Set up the repositories to get the LensKit plugin.
+ * This configuration pulls in things needed for the build.gradle script itself */
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.grouplens.lenskit:lenskit-gradle:3.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'lenskit'
+
+import org.lenskit.gradle.*
+
+/* Setting up the repositories for getting LensKit and other libraries.
+ */
+repositories {
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // Code needs to build with LensKit.
+    compile "org.grouplens.lenskit:lenskit-all:3.0-SNAPSHOT"
+
+    // To run the code, we also need the LensKit CLI.
+    runtime "org.grouplens.lenskit:lenskit-cli:3.0-SNAPSHOT"
+
+    // Tests use JUnit
+    testCompile "junit:junit:4.12"
+}
+
+/* Configure LensKit */
+lenskit {
+    // you can configure the threadCount and maxMemory here, or on the command line
+    // e.g. -PthreadCount=8
+}
+
+/* Download the MovieLens data set */
+task fetchData {
+    description 'Fetches the data set.'
+    ext.dataDir = "BX-CSV-Dump"
+    ext.zipFile = "BX-CSV-Dump.zip"
+
+    outputs.dir dataDir
+    outputs.file zipFile
+
+    doLast {
+        mkdir dataDir
+        ant {
+            get(src: 'http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip',
+                    dest: zipFile,
+                    skipExisting: true)
+            unzip(src: zipFile, dest: dataDir) {
+                patternset {
+                    include name: 'BX-CSV-Dump/*'
+                }
+                mapper type: 'flatten'
+            }
+        }
+    }
+}
+
+task crossfold(type: Crossfold, group: 'evaluate') {
+    // download data before evaluating
+    dependsOn fetchData
+
+    input textFile {
+        file "data/BX-CSV-Dump/ratings.csv"
+        delimiter ","
+       // headerLines 1
+
+        // ratings are on a 1-10 scale
+        domain {
+            minimum 0.0
+            maximum 1.0
+            precision 1.0
+        }
+       // fields = ['userId','movieId','rating','timestamp?']
+    }
+
+    // test on random 1/5 of each user's ratings
+    userPartitionMethod holdout(5, 'random')
+    // use 5-fold cross-validation
+    partitionCount 5
+    //Random Sampling
+    method 'SAMPLE_USERS'
+    sampleSize 5000
+    // pack data for efficiency
+    outputFormat 'PACK'
+    includeTimestamps false
+}
+
+/* Run the LensKit evaluation */
+task evaluate(type: TrainTest, group: 'evaluate') {
+    description 'Runs the LensKit evaluation.'
+
+    // we add our crossfold task as evaluation input
+    dataSet crossfold
+
+    // send the output to appropriate files
+    outputFile "$buildDir/eval-results.csv"
+    userOutputFile "$buildDir/eval-users.csv"
+
+    // configure our algorithms
+    algorithm 'Funksvd', 'algorithms/funkSVD'
+    //algorithm 'ItemItem', 'algorithms/item-item.groovy'
+    algorithm 'PopularItemRecommender', 'algorithms/popular-itmes-recommender.groovy'
+    //algorithm 'Popularity-Belding-ItemItem', 'algorithms/popularity-blending-item-item.groovy'
+    algorithm 'Poplarity-Blending-Funksvd', 'algorithms/popurality-blending-funkSVD.groovy'
+    algorithm 'UserUser', 'algorithms/user-user.groovy'
+    algorithm 'Popularity-Belding-UserUser', 'algorithms/popularity-blending-user-user.groovy'
+    algorithm 'RandomItemRecommender', 'algorithms/random-item-recommender.groovy'
+
+
+
+    // and some evaluation tasks and metrics
+
+    predict {
+        metric 'rmse'
+        metric 'ndcg'
+    }
+
+    recommend {
+        listSize 25
+        labelPrefix "20R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 20)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "50R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 50)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "100R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 100)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "250R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 250)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "500R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 500)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "1000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 1000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+
+    recommend {
+        listSize 25
+        labelPrefix "1500R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 1500)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+
+    recommend {
+        listSize 25
+        labelPrefix "2700R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 2700)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "3000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 3000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "5000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 5000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "6750R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 6750)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "10000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 10000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "20000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 20000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "27000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 27000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "50000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 50000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "66000R"
+        candidateItems 'user.testItems + pickRandom(allItems - user.trainItems, 66000)'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+    recommend {
+        listSize 25
+        labelPrefix "AllItems"
+        candidateItems 'allItems'
+        metric ('mrr')
+        metric ('ndcg'){
+            discount 'exp(5)'
+        }
+        metric ('map')
+        metric ('pr')
+    }
+}
+
+task analyzeResults(type: Exec, group: 'evaluate') {
+    description 'Post-processes evaluation results to draw charts.'
+
+    dependsOn evaluate
+
+    inputs.files "$buildDir/eval-results.csv", 'analyze-output.ipynb'
+    outputs.file "$buildDir/analysis.html"
+
+    /* run Jupyter/IPython. Location can be overridden with -Pipython.bin=/usr/bin/ipython */
+    if (project.hasProperty('ipython.bin')) {
+        executable project.getProperty('ipython.bin')
+    } else {
+        executable 'jupyter'
+    }
+    args 'nbconvert', '--to', 'html', '--execute'
+    args '--output', file("$buildDir/analysis.html")
+    args file("analyze-output.ipynb")
+}
+
+task cleanData {
+    doLast {
+        delete 'data'
+    }
+}

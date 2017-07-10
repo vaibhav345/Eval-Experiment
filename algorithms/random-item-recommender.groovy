@@ -1,0 +1,2 @@
+
+bind ItemRecommender to RandomItemRecommender
